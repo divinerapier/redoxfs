@@ -1,5 +1,5 @@
-#![crate_name="redoxfs"]
-#![crate_type="lib"]
+#![crate_name = "redoxfs"]
+#![crate_type = "lib"]
 
 extern crate syscall;
 extern crate uuid;
