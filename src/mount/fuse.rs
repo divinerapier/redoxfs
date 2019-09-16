@@ -205,7 +205,14 @@ impl<D: Disk> Filesystem for Fuse<D> {
 
     fn read(&mut self, _req: &Request, block: u64, _fh: u64, offset: i64, size: u32, reply: ReplyData) {
         let mut data = vec![0; size as usize];
-        match self.fs.read_node(block, cmp::max(0, offset) as u64, &mut data) {
+        let atime = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+        match self.fs.read_node(
+            block,
+            cmp::max(0, offset) as u64,
+            &mut data,
+            atime.as_secs(),
+            atime.subsec_nanos(),
+        ) {
             Ok(count) => {
                 reply.data(&data[..count]);
             },
@@ -359,7 +366,8 @@ impl<D: Disk> Filesystem for Fuse<D> {
 
     fn readlink(&mut self, _req: &Request, ino: u64, reply: ReplyData) {
         let mut data = vec![0; 4096];
-        match self.fs.read_node(ino, 0, &mut data) {
+        let atime = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+        match self.fs.read_node(ino, 0, &mut data, atime.as_secs(), atime.subsec_nanos()) {
             Ok(count) => {
                 reply.data(&data[..count]);
             },
