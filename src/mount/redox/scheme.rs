@@ -39,7 +39,8 @@ impl<D: Disk> FileScheme<D> {
         let mut node = node;
         for _ in 0..32 { // XXX What should the limit be?
             let mut buf = [0; 4096];
-            let count = fs.read_node(node.0, 0, &mut buf)?;
+            let atime = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+            let count = fs.read_node(node.0, 0, &mut buf, atime.as_secs(), atime.subsec_nanos())?;
             let scheme = format!("{}:", &self.name);
             let canon = canonicalize(&format!("{}{}", scheme, str::from_utf8(url).unwrap()).as_bytes(), &buf[0..count]);
             let path = str::from_utf8(&canon[scheme.len()..]).unwrap_or("").trim_matches('/');

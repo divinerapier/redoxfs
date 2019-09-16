@@ -427,7 +427,7 @@ impl<D: Disk> FileSystem<D> {
         }
     }
 
-    pub fn read_node(&mut self, block: u64, offset: u64, buf: &mut [u8]) -> Result<usize> {
+    pub fn read_node(&mut self, block: u64, offset: u64, buf: &mut [u8], atime: u64, atime_nsec: u32) -> Result<usize> {
         let block_offset = offset / BLOCK_SIZE;
         let mut byte_offset = (offset % BLOCK_SIZE) as usize;
 
@@ -481,6 +481,15 @@ impl<D: Disk> FileSystem<D> {
 
             assert_eq!(length, 0);
             assert_eq!(block, extent.block + (extent.length + BLOCK_SIZE - 1)/BLOCK_SIZE);
+        }
+
+        if i > 0 {
+            let mut node = self.node(block)?;
+            if atime > node.1.atime || (atime == node.1.atime && atime_nsec > node.1.atime_nsec) {
+                node.1.atime = atime;
+                node.1.atime_nsec = atime_nsec;
+                self.write_at(node.0, &node.1)?;
+            }
         }
 
         Ok(i)
