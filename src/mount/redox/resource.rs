@@ -211,14 +211,7 @@ impl Fmap {
 
         // Read buffer from disk
         let buf = slice::from_raw_parts_mut(address, map.size);
-        let atime = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-        let count = match fs.read_node(
-            block,
-            map.offset as u64,
-            buf,
-            atime.as_secs(),
-            atime.subsec_nanos()
-        ) {
+        let count = match fs.read_node(block, map.offset as u64, buf) {
             Ok(ok) => ok,
             Err(err) => {
                 free(address);
@@ -304,8 +297,7 @@ impl<D: Disk> Resource<D> for FileResource {
 
     fn read(&mut self, buf: &mut [u8], fs: &mut FileSystem<D>) -> Result<usize> {
         if self.flags & O_ACCMODE == O_RDWR || self.flags & O_ACCMODE == O_RDONLY {
-            let atime = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-            let count = fs.read_node(self.block, self.seek, buf, atime.as_secs(), atime.subsec_nanos())?;
+            let count = fs.read_node(self.block, self.seek, buf)?;
             self.seek += count as u64;
             Ok(count)
         } else {
