@@ -490,8 +490,12 @@ impl<D: Disk> FileSystem<D> {
             let atime = atime.as_secs();
             let mut node = self.node(block)?;
             if atime > node.1.atime || (atime == node.1.atime && atime_nsec > node.1.atime_nsec) {
+                let is_old = atime - node.1.atime > 3600; // Last read was more than a day ago
                 node.1.atime = atime;
                 node.1.atime_nsec = atime_nsec;
+                if is_old {
+                    self.write_at(node.0, &node.1)?;
+                }
             }
         }
 
