@@ -1,5 +1,5 @@
 image.bin:
-	dd if=/dev/zero of=image.bin bs=1M count=1024
+	dd if=/dev/zero of=image.bin bs=1m count=1024
 	cargo build --release --bin redoxfs-mkfs
 	target/release/redoxfs-mkfs image.bin
 
